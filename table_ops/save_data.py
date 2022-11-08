@@ -7,7 +7,7 @@ from settings import *
 import logging
 logger = logging.getLogger(__name__)
 
-# save new values
+# save only new values based on pk
 def save(values, table_name, pk='tsid'):
     try:
         # filter for new values
@@ -34,5 +34,19 @@ def save(values, table_name, pk='tsid'):
         else:
             logger.info("no new values to save for %s"%table_name)
     
+    except Exception as e:
+        logger.error(e)
+
+# replace existing database values with new values
+def save_v2(values, table_name):
+    try:
+        df = pd.DataFrame(values)
+        df['created_at'] = datetime.now()
+        
+        engine = create_engine("postgresql://{user}:{password}@{host}/{database}".format(**conn_params))
+        conn = engine.connect()
+        df.to_sql(table_name, conn, if_exists='replace', index=False)
+        logger.info("saved %s new values for %s"%(len(df), table_name))
+
     except Exception as e:
         logger.error(e)

@@ -40,7 +40,7 @@ class DataFlow():
             else:        
                 logger.info('fetching data from %s for %s companies for period %s'%(self.end_point, len(symbols), self.period))
                 for symbol, exchange in zip(symbols, exchanges):
-                    currency = get_value(get_param='currency', post_param=symbol, table_name='annual_profile')
+                    currency = get_value(sql=" select currency from company_profile where symbol = '%s' "%symbol)[0][0]
                     ft = FundamentalTables(self.API_KEY, self.end_point, symbol, exchange, currency, self.period, self.limit)
                     # create data from end_point
                     values = ft.fetch_data()
@@ -58,28 +58,27 @@ if __name__ == '__main__':
 
     args = [
         # fundamental tables
-        # ('income-statement', 'annual', 30),
-        # ('income-statement', 'quarter', 120),
-        # ('income-statement-growth', 'annual', 30),
-        # ('income-statement-growth', 'quarter', 120),
-        # ('balance-sheet-statement', 'annual', 30),
-        # ('balance-sheet-statement', 'quarter', 120),
-        # ('balance-sheet-statement-growth', 'annual', 30),
-        # ('balance-sheet-statement-growth', 'quarter', 120),
-        # ('cash-flow-statement', 'annual', 30),
-        # ('cash-flow-statement', 'quarter', 120),
-        # ('cash-flow-statement-growth', 'annual', 30),
-        # ('cash-flow-statement-growth', 'quarter', 120),
-        # ('ratios', 'annual', 30),
-        # ('ratios', 'quarter', 120),
-        # ('ratios-ttm', 'annual', 30),
-        # ('key-metrics-ttm', 'annual', 30),
-        # ('key-metrics', 'annual', 30),
-        # ('key-metrics', 'quarter', 120),
-        # ('profile','annual', 30),
+        ('income-statement', 'annual', 30),
+        ('income-statement', 'quarter', 120),
+        ('income-statement-growth', 'annual', 30),
+        ('income-statement-growth', 'quarter', 120),
+        ('balance-sheet-statement', 'annual', 30),
+        ('balance-sheet-statement', 'quarter', 120),
+        ('balance-sheet-statement-growth', 'annual', 30),
+        ('balance-sheet-statement-growth', 'quarter', 120),
+        ('cash-flow-statement', 'annual', 30),
+        ('cash-flow-statement', 'quarter', 120),
+        ('cash-flow-statement-growth', 'annual', 30),
+        ('cash-flow-statement-growth', 'quarter', 120),
+        ('ratios', 'annual', 30),
+        ('ratios', 'quarter', 120),
+        ('ratios-ttm', 'annual', 30),
+        ('key-metrics-ttm', 'annual', 30),
+        ('key-metrics', 'annual', 30),
+        ('key-metrics', 'quarter', 120)
 
-        # # price and volume tables
-        # ('historical-price-full', 'annual', 30),
+        # price and volume tables
+        ('historical-price-full', 'annual', 30),
     ]
     
     for arg in args:

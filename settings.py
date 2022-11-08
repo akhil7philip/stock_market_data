@@ -1,6 +1,9 @@
+import sys
 import os
 from dotenv import load_dotenv
 load_dotenv()
+
+sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 
 api_key = os.environ.get('API_KEY')
 

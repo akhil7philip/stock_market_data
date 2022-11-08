@@ -1,7 +1,13 @@
+from ..settings import *
 import re
 import time
 import requests
 import pandas as pd
+
+from financial_data.symbols_exchange import get_symbols_exchanges
+from table_ops.get_value import get_value
+from table_ops.create_table import create_table
+from table_ops.save_data import save
 
 import logging
 logger = logging.getLogger(__name__)
@@ -43,3 +49,24 @@ class PriceVolumeTables():
     def camel_to_snake(self, name):
         name = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
         return re.sub('([a-z0-9])([A-Z])', r'\1_\2', name).lower()
+
+if __name__ == '__main__':
+
+    # get symbols and exchange data
+    symbols, exchanges = get_symbols_exchanges(api_key)
+
+    try:
+        end_point, period, limit = 'historical-price-full', 'annual', 30
+        pvt = PriceVolumeTables(api_key, end_point, symbols, period, limit)
+        # create data from end_point
+        price_vals, volume_vals = pvt.fetch_data()
+        if price_vals:
+            # create table if not exists for end_point
+            create_table(price_vals, "daily_price_per_ticker", pk='date')
+            create_table(volume_vals, "daily_volume_per_ticker", pk='date')
+            # save data to table
+            save(price_vals, "daily_price_per_ticker", pk='date')
+            save(volume_vals, "daily_volume_per_ticker", pk='date')
+            
+    except Exception as e:
+        logger.error(e)
