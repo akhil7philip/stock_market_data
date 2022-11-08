@@ -26,20 +26,21 @@ def get_symbols_exchanges(API_KEY, table_name):
             df = pd.DataFrame(data)
             # get only symbols from 'NASDAQ','NYSE' exchanges
             df = df.set_index('exchangeShortName').loc[['NASDAQ','NYSE'],'symbol'].reset_index()
+            if table_name:
+                # order symbols based on values from existing table
+                conn = psycopg2.connect(**conn_params)
+                cur = conn.cursor()
+                cur.execute('SELECT distinct %s from %s'%('symbol',table_name))
+                model_symbol_set = set([val[0] for val in cur.fetchall()])
+                sheet_symbol_set = set(df['symbol'])
+                symbol_to_save = list(sheet_symbol_set - model_symbol_set)
+                symbol_to_save.extend(model_symbol_set)
+                
+                # get new records from df
+                df = df.set_index('symbol').loc[symbol_to_save,'exchangeShortName'].reset_index()
 
-            # order symbols based on values from existing table
-            conn = psycopg2.connect(**conn_params)
-            cur = conn.cursor()
-            cur.execute('SELECT distinct %s from %s'%('symbol',table_name))
-            model_symbol_set = set([val[0] for val in cur.fetchall()])
-            sheet_symbol_set = set(df['symbol'])
-            symbol_to_save = list(sheet_symbol_set - model_symbol_set)
-            symbol_to_save.extend(model_symbol_set)
-            
-            # get new records from df
-            df = df.set_index('symbol').loc[symbol_to_save,'exchangeShortName'].reset_index()
             logger.info('fetched symbols and exchanges for %s companies'%len(df))
             return df['symbol'].values, df['exchangeShortName'].values
-            
+    
     except Exception as e:
         logger.error(e)

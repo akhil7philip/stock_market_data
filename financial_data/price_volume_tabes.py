@@ -1,4 +1,4 @@
-from ..settings import *
+from settings import *
 import re
 import time
 import requests
@@ -13,7 +13,12 @@ import logging
 logger = logging.getLogger(__name__)
 
 class PriceVolumeTables():
-
+    '''
+    To pull data from fmpcloud api endpoint (historical-price-full),
+    to store prices and volumes data of interested symbols.
+    
+    :param url: String url to fetch data from
+    '''
     def __init__(self, API_KEY, end_point, symbols, period, limit):
         self.API_KEY, self.end_point, self.symbols, self.period, self.limit = API_KEY, end_point, symbols, period, limit
     
@@ -53,7 +58,7 @@ class PriceVolumeTables():
 if __name__ == '__main__':
 
     # get symbols and exchange data
-    symbols, exchanges = get_symbols_exchanges(api_key)
+    symbols, exchanges = get_symbols_exchanges(api_key, None)
 
     try:
         end_point, period, limit = 'historical-price-full', 'annual', 30
