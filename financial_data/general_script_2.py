@@ -1,10 +1,13 @@
-from settings import *
+import sys
+sys.path.insert(0,'/Users/akhil.philip/learn/upwork/stock_market_data')
+
+from settings.settings import *
 import re
-import requests
 import pandas as pd
 
 from table_ops.create_table import create_table
 from table_ops.save_data import save_v2
+from helper_funcs.get_api import get_api, create_session
 
 import logging
 logger = logging.getLogger(__name__)
@@ -16,15 +19,14 @@ class GeneralScriptTwo():
     
     def fetch_data(self):
         try:
+            session = create_session()
             url = f"https://fmpcloud.io/api/v3/{self.end_point}?apikey={self.API_KEY}"
-            r   = requests.get(url, headers={'Content-Type': 'application/json'})
-            if r.status_code == requests.codes.ok: 
-                data        = r.json()
-                if data:
-                    df = pd.DataFrame(data)
-                    # convert column names to snake_case
-                    df.rename(columns={col:self.camel_to_snake(col) for col in df.columns}, inplace=True)
-                    return df.to_dict('records')
+            data = get_api(session, url)
+            if data:
+                df = pd.DataFrame(data)
+                # convert column names to snake_case
+                df.rename(columns={col:self.camel_to_snake(col) for col in df.columns}, inplace=True)
+                return df.to_dict('records')
         
         except Exception as e:
             logger.error(e)

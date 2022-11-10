@@ -1,7 +1,10 @@
+import sys
+sys.path.insert(0,'/Users/akhil.philip/learn/upwork/stock_market_data')
+
+from settings.settings import *
 from numpy import dtype
 import psycopg2
 import pandas as pd
-from settings import *
 import logging
 logger = logging.getLogger(__name__)
 
