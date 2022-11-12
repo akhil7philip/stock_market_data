@@ -17,7 +17,9 @@ def get_value(sql):
         conn = psycopg2.connect(**conn_params)
         cur = conn.cursor()
         cur.execute(sql)
-        return cur.fetchall()
+        val = cur.fetchall()
+        conn.close()
+        return val
     
     except Exception as e:
         logger.error(e)
@@ -33,6 +35,7 @@ def set_value(sql):
         cur = conn.cursor()
         cur.execute(sql)
         conn.commit()
+        conn.close()
     
     except Exception as e:
         logger.error(e)

@@ -39,6 +39,7 @@ def create_table(values, table_name, pk='tsid'):
         # s+='created_at TIMESTAMP WITHOUT TIME ZONE, PRIMARY KEY(%s))'%pk
         cur.execute(s)
         conn.commit()
+        conn.close()
 
     except Exception as e:
         logger.error(e)

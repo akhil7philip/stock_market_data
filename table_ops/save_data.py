@@ -22,6 +22,7 @@ def save(values, table_name, pk='tsid'):
         cur.execute('SELECT %s from %s'%(pk,table_name))
         
         model_pk_set = set([val[0] for val in cur.fetchall()])
+        conn.close()
         sheet_pk_set = set(df[pk])
         pk_to_save = sheet_pk_set - model_pk_set
 
@@ -35,6 +36,7 @@ def save(values, table_name, pk='tsid'):
             engine = create_engine("postgresql://{user}:{password}@{host}/{database}".format(**conn_params))
             conn = engine.connect()
             df.to_sql(table_name, conn, if_exists='append', index=False)
+            conn.close()
             logger.info("saved %s new values for %s"%(len(df), table_name))
         else:
             logger.info("no new values to save for %s"%table_name)
@@ -53,6 +55,7 @@ def save_v2(values, table_name):
         engine = create_engine("postgresql://{user}:{password}@{host}/{database}".format(**conn_params))
         conn = engine.connect()
         df.to_sql(table_name, conn, if_exists='replace', index=False)
+        conn.close()
         logger.info("saved %s new values for %s"%(len(df), table_name))
 
     except Exception as e:

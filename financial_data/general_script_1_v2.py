@@ -5,7 +5,6 @@ from settings.settings import *
 import re
 import json
 import hashlib
-from django.core.serializers.json import DjangoJSONEncoder
 from multiprocessing import Pool
 import pandas as pd
 
@@ -31,33 +30,33 @@ class GeneralScriptOne():
             if self.url_version == 'v3': url = f"https://fmpcloud.io/api/v3/{self.end_point}/{self.symbol}?period={self.period}&limit={self.limit}&apikey={self.API_KEY}"
             elif self.url_version == 'v4': url = f"https://fmpcloud.io/api/v4/{self.end_point}?symbol={self.symbol}&period={self.period}&limit={self.limit}&apikey={self.API_KEY}"
             data = get_api(self.session, url)
-            
-            df = pd.DataFrame(data)
-            # add 'symbol' if not exists
-            if 'symbol' not in df.columns:
-                df.insert(loc=0, column='symbol', value=self.symbol)
-            # add 'exchangeShortName' if not exists
-            if 'exchangeShortName' not in df.columns:
-                df.insert(2, 'exchangeShortName', self.exchange)
-            
-            # incase the table does not have the date column, 
-            # add the endpoint to the set exception_tables_set
-            exception_tables_set = {'key-metrics-ttm','ratios-ttm','profile','stock_peers'}
-            
-            # add 'calendarYear' if not exists
-            if 'calendarYear' not in df.columns and self.end_point not in exception_tables_set:
-                df.insert(3, 'calendarYear', df['date'].map(lambda x:x.split('-')[0]))
-            
-            # convert column names to snake_case
-            df.rename(columns={col:self.camel_to_snake(col) for col in df.columns}, inplace=True)
-            
-            # add 'hash' primary key
-            df['hash'] = df.apply(lambda x:self.dict_hash(dict(x)),axis=1)
-            
-            if self.period == 'quarter': count = int(len(df)/4)
-            else: count = len(df)
-            logger.info('Receieved %s years of data for company %s'%(count, self.symbol))
-            return df.to_dict('records')
+            if data:
+                df = pd.DataFrame(data)
+                # add 'symbol' if not exists
+                if 'symbol' not in df.columns:
+                    df.insert(loc=0, column='symbol', value=self.symbol)
+                # add 'exchangeShortName' if not exists
+                if 'exchangeShortName' not in df.columns:
+                    df.insert(2, 'exchangeShortName', self.exchange)
+                
+                # incase the table does not have the date column, 
+                # add the endpoint to the set exception_tables_set
+                exception_tables_set = {'key-metrics-ttm','ratios-ttm','profile','stock_peers'}
+                
+                # add 'calendarYear' if not exists
+                if 'calendarYear' not in df.columns and self.end_point not in exception_tables_set:
+                    df.insert(3, 'calendarYear', df['date'].map(lambda x:x.split('-')[0]))
+                
+                # convert column names to snake_case
+                df.rename(columns={col:self.camel_to_snake(col) for col in df.columns}, inplace=True)
+                
+                # add 'hash' primary key
+                df['hash'] = df.apply(lambda x:self.dict_hash(dict(x)),axis=1)
+                
+                if self.period == 'quarter': count = int(len(df)/4)
+                else: count = len(df)
+                logger.info('Receieved %s years of data for company %s'%(count, self.symbol))
+                return df.to_dict('records')
         
         except Exception as e:
             logger.error(e)
@@ -69,7 +68,7 @@ class GeneralScriptOne():
     def dict_hash(self, data) -> str:
         """SHA256 hash of a dictionary."""
         dhash = hashlib.sha256()
-        encoded = json.dumps(data, sort_keys=True, cls=DjangoJSONEncoder).encode()
+        encoded = json.dumps(data, sort_keys=True).encode()
         dhash.update(encoded)
         return dhash.hexdigest()
 
