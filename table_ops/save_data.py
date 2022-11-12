@@ -10,6 +10,8 @@ from sqlalchemy import create_engine
 import logging
 logger = logging.getLogger(__name__)
 
+
+
 # save only new values based on pk
 def save(values, table_name, pk='tsid'):
     try:
@@ -39,6 +41,8 @@ def save(values, table_name, pk='tsid'):
     
     except Exception as e:
         logger.error(e)
+
+
 
 # replace existing database values with new values
 def save_v2(values, table_name):

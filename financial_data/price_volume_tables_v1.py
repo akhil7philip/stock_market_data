@@ -6,9 +6,9 @@ import re
 from datetime import datetime
 import pandas as pd
 
-from financial_data.symbols_exchange import get_symbols_exchanges
+from financial_data.symbols_exchange_v2 import get_symbols_exchanges
 from helper_funcs.get_api import get_api, create_session
-from table_ops.get_value import get_value
+from table_ops.table_ops import get_value
 from table_ops.create_table import create_table
 from table_ops.save_data import save
 

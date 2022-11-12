@@ -6,19 +6,21 @@ import re
 import pandas as pd
 from multiprocessing import Pool
 
-from financial_data.symbols_exchange import get_symbols_exchanges
+from financial_data.symbols_exchange_v1 import get_symbols_exchanges
 from helper_funcs.get_api import get_api, create_session
-from table_ops.get_value import get_value
+from table_ops.table_ops import get_value, set_value
 from table_ops.create_table import create_table
 from table_ops.save_data import save
 
 import logging
 logger = logging.getLogger(__name__)
 
+
+
 class FundamentalTables():
 
-    def __init__(self, API_KEY, session, end_point, symbol, exchange, currency, period, limit):
-        self.API_KEY, self.session, self.end_point, self.symbol, self.exchange, self.currency, self.period, self.limit = API_KEY, session, end_point, symbol, exchange, currency, period, limit
+    def __init__(self, API_KEY, session, end_point, symbol, exchange, currency, country, period, limit):
+        self.API_KEY, self.session, self.end_point, self.symbol, self.exchange, self.currency, self.country, self.period, self.limit = API_KEY, session, end_point, symbol, exchange, currency, country, period, limit
 
     def fetch_data(self):
         try:
@@ -36,6 +38,9 @@ class FundamentalTables():
                 # add 'currency' if not exists
                 if 'currency' not in df.columns:
                     df.insert(2, 'currency', self.currency)
+                # add 'country' if not exists
+                if 'country' not in df.columns:
+                    df.insert(2, 'country', self.country)
                 # add 'calendarYear' if not exists
                 if 'calendarYear' not in df.columns and self.end_point not in {'key-metrics-ttm','ratios-ttm','profile'}:
                     df.insert(3, 'calendarYear', df['date'].map(lambda x:x.split('-')[0]))
@@ -62,19 +67,44 @@ class FundamentalTables():
         name = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
         return re.sub('([a-z0-9])([A-Z])', r'\1_\2', name).lower()
 
+
+
+
 def main(*args):
+    """
+    *args -> (('income-statement', 'annual', 30, 'annual_income_statement'),)
+    end_point, period, limit, table_name = 'income-statement', 'annual', 30, 'annual_income_statement'
+    """
     try:
         end_point, period, limit, table_name = args[0]
         # get symbols and exchange data
         symbols, exchanges = get_symbols_exchanges(api_key, table_name)
         
+        # alter table to add new columns
+        set_value("""
+            alter table if exists %s 
+            add column if not exists country varchar(30), 
+            add column if not exists currency varchar(10)
+        """%table_name)
         session = create_session()
         logger.info('fetching data from %s for %s companies for period %s'%(end_point, len(symbols), period))
         for symbol, exchange in zip(symbols, exchanges):
+            # add currency column
             currency = get_value(sql=" select currency from company_profile where symbol = '%s' "%symbol)
             if currency: currency = currency[0][0]
             else: currency = None
-            ft = FundamentalTables(api_key, session, end_point, symbol, exchange, currency, period, limit)
+            # add currency column
+            country = get_value(sql=" select country from company_profile where symbol = '%s' "%symbol)
+            if country: country = country[0][0]
+            else: country = None
+            # update table to backfill values
+            set_value("""
+                update %s 
+                set country = '%s', currency = '%s' 
+                where symbol = '%s'
+            """%(table_name, country, currency, symbol))
+            # run FundamentalTables main script
+            ft = FundamentalTables(api_key, session, end_point, symbol, exchange, currency, country, period, limit)
             # create data from end_point
             values = ft.fetch_data()
             if values:
@@ -82,15 +112,19 @@ def main(*args):
                 create_table(values, table_name)
                 # save data to table
                 save(values, table_name)
+                
         
     except Exception as e:
         logger.error(e)
+
+
 
 
 if __name__ == '__main__':
 
     # fundamental tables
     args = [
+        # (endpoint, period, limit, table_name)
         ('income-statement', 'annual', 30, 'annual_income_statement'),
         ('income-statement', 'quarter', 120, 'quarter_income_statement'),
         ('income-statement-growth', 'annual', 30, 'annual_income_statement_growth'),

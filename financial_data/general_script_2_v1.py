@@ -12,6 +12,9 @@ from helper_funcs.get_api import get_api, create_session
 import logging
 logger = logging.getLogger(__name__)
 
+
+
+
 class GeneralScriptTwo():
 
     def __init__(self, API_KEY, end_point):
@@ -21,6 +24,7 @@ class GeneralScriptTwo():
         try:
             session = create_session()
             url = f"https://fmpcloud.io/api/v3/{self.end_point}?apikey={self.API_KEY}"
+            # url = f"https://fmpcloud.io/api/v4/{self.end_point}?limit={self.limit}&apikey={self.API_KEY}"
             data = get_api(session, url)
             if data:
                 df = pd.DataFrame(data)
@@ -36,11 +40,15 @@ class GeneralScriptTwo():
         return re.sub('([a-z0-9])([A-Z])', r'\1_\2', name).lower()
 
 
+
+
 if __name__ == '__main__':
 
     # fundamental tables
     args = [
-        ('gainers', 'stock_market_performances', 'ticker')
+        # end_point, table_name, primary_key
+        ('gainers', 'stock_market_performances', 'ticker'),
+        ('earning_calendar', 'earning_calendar', 'symbol'),
     ]
     
     for arg in args:

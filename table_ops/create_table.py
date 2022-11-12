@@ -34,7 +34,7 @@ def create_table(values, table_name, pk='tsid'):
                 v = 'TEXT'
             else:
                 v = 'TEXT'
-            s+=f'{k} {v}, '
+            s+=f'"{k}" {v}, '
         s+='created_at TIMESTAMP WITH TIME ZONE, PRIMARY KEY(%s))'%pk
         # s+='created_at TIMESTAMP WITHOUT TIME ZONE, PRIMARY KEY(%s))'%pk
         cur.execute(s)

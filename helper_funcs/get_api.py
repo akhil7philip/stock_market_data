@@ -7,6 +7,10 @@ import logging
 logger = logging.getLogger(__name__)
 
 def create_session():
+    """
+    create a requests Sesssion that defines paramerters 
+    like retry count, backoff time ({backoff factor} * (2 ** ({number of total retries} - 1)))
+    """
     try:
         session = requests.Session()
         retry = Retry(total=5, connect=3, backoff_factor=0.5)
@@ -17,6 +21,10 @@ def create_session():
         logger.error(e)
 
 def get_api(session, url):
+    """
+    get call based on session created
+    return data in json format, if status code is 200
+    """
     try:
         r = session.get(url, headers={'Content-Type': 'application/json'})
         if r.status_code == requests.codes.ok: 
