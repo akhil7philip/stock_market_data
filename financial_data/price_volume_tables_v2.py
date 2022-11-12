@@ -56,7 +56,7 @@ class PriceVolumeTables():
             
             # multiprocessing
             pool = Pool(os.cpu_count())
-            args = [(final_price,final_volume,symbol) for symbol in self.symbols[:100]]
+            args = [(final_price,final_volume,symbol) for symbol in self.symbols]
             results = pool.map(self.main, args)
             
             price_list, volume_list = [], []
