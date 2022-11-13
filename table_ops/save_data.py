@@ -13,13 +13,14 @@ logger = logging.getLogger(__name__)
 
 
 # save only new values based on pk
-def save(values, table_name, pk='tsid'):
+def save(values, table_name, symbol=None, pk='tsid'):
     try:
         # filter for new values
         df = pd.DataFrame(values)
         conn = psycopg2.connect(**conn_params)
         cur = conn.cursor()
-        cur.execute('SELECT %s from %s'%(pk,table_name))
+        if symbol==None: cur.execute('SELECT %s from %s'%(pk,table_name))
+        else: cur.execute("SELECT %s from %s where symbol = '%s'"%(pk,table_name,symbol))
         
         model_pk_set = set([val[0] for val in cur.fetchall()])
         conn.close()

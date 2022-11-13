@@ -102,7 +102,7 @@ if __name__ == '__main__':
                     # create table if not exists for end_point
                     create_table(values, table_name, pk='hash')
                     # save data to table
-                    save(values, table_name, pk='hash')
+                    save(values, table_name, symbol, pk='hash')
             
         except Exception as e:
             logger.error(e)

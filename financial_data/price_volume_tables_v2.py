@@ -55,7 +55,9 @@ class PriceVolumeTables():
             final_volume = pd.DataFrame(columns=['date'])
             
             # multiprocessing
-            pool = Pool(os.cpu_count())
+            p = os.cpu_count()
+            logger.info("starting pool of %s workers"%p)
+            pool = Pool(p)
             args = [(final_price,final_volume,symbol) for symbol in self.symbols]
             results = pool.map(self.main, args)
             

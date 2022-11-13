@@ -95,7 +95,7 @@ def main(*args):
                 # create table if not exists for end_point
                 create_table(values, table_name, pk='hash')
                 # save data to table
-                save(values, table_name, pk='hash')
+                save(values, table_name, symbol, pk='hash')
     except Exception as e:
             logger.error(e)
 
@@ -113,6 +113,8 @@ if __name__ == '__main__':
     ]
     
     # multiprocessing
-    with Pool(os.cpu_count()) as p:
+    pool = os.cpu_count()
+    with Pool(pool) as p:
+        logger.info("starting pool of %s workers"%pool)
         p.map(main, args)
     
