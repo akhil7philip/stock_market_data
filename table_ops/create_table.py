@@ -2,6 +2,7 @@ import sys
 sys.path.insert(0,'/Users/akhil.philip/learn/upwork/stock_market_data')
 
 from settings.settings import *
+from table_ops.ssh_client import open_ssh_tunnel
 from numpy import dtype
 import psycopg2
 import pandas as pd
@@ -9,9 +10,11 @@ import logging
 logger = logging.getLogger(__name__)
 
 # create table
-def create_table(values, table_name, pk='tsid'):
+def create_table(values, table_name, pk='tsid', port=5432):
     try:
+        # print('port: %s'%port)
         df = pd.DataFrame(values)
+        conn_params['port'] = port
         conn = psycopg2.connect(**conn_params)
         cur = conn.cursor()
         s = "CREATE TABLE IF NOT EXISTS %s ("%table_name

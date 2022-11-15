@@ -3,14 +3,13 @@ sys.path.insert(0,'/Users/akhil.philip/learn/upwork/stock_market_data')
 
 from settings.settings import *
 import pandas as pd
-import psycopg2
 from helper_funcs.get_api import get_api, create_session
-
+from table_ops.table_ops import get_value
 import logging
 logger = logging.getLogger(__name__)
 
 # get company names
-def get_symbols_exchanges(API_KEY, table_name):
+def get_symbols_exchanges(API_KEY, table_name, port=5432):
     '''
     To pull the symbols and exchange data via the fmpcloud api endpoint (stock).
     
@@ -30,13 +29,11 @@ def get_symbols_exchanges(API_KEY, table_name):
                     # order symbols based on values from existing table;
                     # i.e create a list of symbols that don't exist in database first, 
                     # and then append the remaining symbols to that list
-                    conn = psycopg2.connect(**conn_params)
-                    cur = conn.cursor()
-                    cur.execute('SELECT distinct %s from %s'%('symbol',table_name))
-                    model_symbol_set = set([val[0] for val in cur.fetchall()])
+                    values = get_value('SELECT distinct %s from %s'%('symbol',table_name), port=port)
+                    model_symbol_set = set([val[0] for val in values])
                     sheet_symbol_set = set(df['symbol'])
                     symbol_to_save = list(sheet_symbol_set - model_symbol_set)
-                    symbol_to_save.extend(model_symbol_set)
+                    # symbol_to_save.extend(model_symbol_set)
                     # get new records from df
                     df = df.set_index('symbol').loc[symbol_to_save,'exchangeShortName'].reset_index()
                 except:

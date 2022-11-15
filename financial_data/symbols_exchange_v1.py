@@ -3,14 +3,13 @@ sys.path.insert(0,'/Users/akhil.philip/learn/upwork/stock_market_data')
 
 from settings.settings import *
 import pandas as pd
-import psycopg2
 from helper_funcs.get_api import get_api, create_session
 
 import logging
 logger = logging.getLogger(__name__)
 
 # get company names
-def get_symbols_exchanges(API_KEY, table_name):
+def get_symbols_exchanges(API_KEY, table_name, port=5432):
     '''
     To pull the symbols and exchange data via the fmpcloud api endpoint (stock).
     

@@ -2,6 +2,7 @@ import sys
 sys.path.insert(0,'/Users/akhil.philip/learn/upwork/stock_market_data')
 
 from settings.settings import *
+from table_ops.table_ops import open_ssh_tunnel
 import re
 import pandas as pd
 
@@ -17,14 +18,13 @@ logger = logging.getLogger(__name__)
 
 class GeneralScriptTwo():
 
-    def __init__(self, API_KEY, end_point):
-        self.API_KEY, self.end_point = API_KEY, end_point
+    def __init__(self, API_KEY, end_point, url_version):
+        self.API_KEY, self.end_point, self.url_version = API_KEY, end_point, url_version
     
     def fetch_data(self):
         try:
             session = create_session()
-            url = f"https://fmpcloud.io/api/v3/{self.end_point}?apikey={self.API_KEY}"
-            # url = f"https://fmpcloud.io/api/v4/{self.end_point}?limit={self.limit}&apikey={self.API_KEY}"
+            url = f"https://fmpcloud.io/api/{self.url_version}/{self.end_point}?apikey={self.API_KEY}"
             data = get_api(session, url)
             if data:
                 df = pd.DataFrame(data)
@@ -42,28 +42,33 @@ class GeneralScriptTwo():
 
 
 
-if __name__ == '__main__':
-
-    # fundamental tables
-    args = [
-        # end_point, table_name, primary_key
-        ('gainers', 'stock_market_performances', 'ticker'),
-        ('earning_calendar', 'earning_calendar', 'symbol'),
-    ]
-    
+@open_ssh_tunnel
+def main(args):
+    port = conn_params['port']
     for arg in args:
         try:
-            end_point, table_name, pk = arg
+            end_point, table_name, pk, url_version = arg
 
             logger.info('fetching data from endpoint %s'%(end_point))
-            gs = GeneralScriptTwo(api_key, end_point)
+            gs = GeneralScriptTwo(api_key, end_point, url_version)
             # create data from end_point
             values = gs.fetch_data()
             if values:
                 # create table if not exists for end_point
-                create_table(values, table_name, pk)
+                create_table(values, table_name, pk=pk, port=port)
                 # save data to table
-                save_v2(values, table_name)
+                save_v2(values, table_name, port=port)
             
         except Exception as e:
             logger.error(e)
+
+
+
+
+if __name__ == '__main__':
+    args = [
+        # (end_point, table_name, primary_key, url_version)
+        ('gainers', 'stock_market_performances', 'ticker', 'v3'),
+        ('earning_calendar', 'earning_calendar', 'symbol', 'v3'),
+    ]
+    main(args)

@@ -2,6 +2,7 @@ import sys
 sys.path.insert(0,'/Users/akhil.philip/learn/upwork/stock_market_data')
 
 from settings.settings import *
+from table_ops.ssh_client import open_ssh_tunnel
 import pandas as pd
 import psycopg2
 from datetime import datetime
@@ -13,10 +14,11 @@ logger = logging.getLogger(__name__)
 
 
 # save only new values based on pk
-def save(values, table_name, symbol=None, pk='tsid'):
+def save(values, table_name, symbol=None, pk='tsid', port=5432):
     try:
         # filter for new values
         df = pd.DataFrame(values)
+        conn_params['port'] = port
         conn = psycopg2.connect(**conn_params)
         cur = conn.cursor()
         if symbol==None: cur.execute('SELECT %s from %s'%(pk,table_name))
@@ -34,7 +36,7 @@ def save(values, table_name, symbol=None, pk='tsid'):
             df['created_at'] = datetime.now()
 
             # save new values only to table
-            engine = create_engine("postgresql://{user}:{password}@{host}/{database}".format(**conn_params))
+            engine = create_engine("postgresql://{user}:{password}@{host}:{port}/{database}".format(**conn_params))
             conn = engine.connect()
             df.to_sql(table_name, conn, if_exists='append', index=False)
             conn.close()
@@ -48,12 +50,13 @@ def save(values, table_name, symbol=None, pk='tsid'):
 
 
 # replace existing database values with new values
-def save_v2(values, table_name):
+def save_v2(values, table_name, port=5432):
     try:
         df = pd.DataFrame(values)
         df['created_at'] = datetime.now()
         
-        engine = create_engine("postgresql://{user}:{password}@{host}/{database}".format(**conn_params))
+        conn_params['port'] = port
+        engine = create_engine("postgresql://{user}:{password}@{host}:{port}/{database}".format(**conn_params))
         conn = engine.connect()
         df.to_sql(table_name, conn, if_exists='replace', index=False)
         conn.close()

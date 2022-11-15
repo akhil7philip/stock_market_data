@@ -63,11 +63,11 @@ class PriceVolumeTables():
 if __name__ == '__main__':
 
     # get symbols and exchange data
-    symbols, exchanges = get_symbols_exchanges(api_key, None)
-
+    port = conn_params['port']
+    symbols, exchanges = get_symbols_exchanges(api_key, None, port=port)
     try:
         # define limit based on records stored in db
-        limit = get_value(sql="select max(date) from daily_price_per_ticker")
+        limit = get_value(sql="select max(date) from daily_price_per_ticker", port=port)
         if limit: 
             limit = (datetime.today().date() - limit[0][0]).days + 1
         else: 
@@ -80,11 +80,11 @@ if __name__ == '__main__':
         price_vals, volume_vals = pvt.fetch_data()
         if price_vals:
             # create table if not exists for end_point
-            create_table(price_vals, "daily_price_per_ticker", pk='date')
-            create_table(volume_vals, "daily_volume_per_ticker", pk='date')
+            create_table(price_vals, "daily_price_per_ticker", pk='date', port=port)
+            create_table(volume_vals, "daily_volume_per_ticker", pk='date', port=port)
             # save data to table
-            save(price_vals, "daily_price_per_ticker", pk='date')
-            save(volume_vals, "daily_volume_per_ticker", pk='date')
+            save(price_vals, "daily_price_per_ticker", pk='date', port=port)
+            save(volume_vals, "daily_volume_per_ticker", pk='date', port=port)
             
     except Exception as e:
         logger.error(e)

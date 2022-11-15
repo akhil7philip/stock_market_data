@@ -44,5 +44,10 @@ conn_params = {
     'user'		: os.environ.get('DB_USER'), 
     'password'	: os.environ.get('DB_PASSWORD'), 
     'host'		: os.environ.get('DB_HOST'), 
-    'port'		: os.environ.get('DB_PORT')
+    'port'		: int(os.environ.get('DB_PORT'))
     }
+
+REMOTE_HOST 	= os.environ.get('REMOTE_HOST')
+REMOTE_USERNAME = os.environ.get('REMOTE_USERNAME')
+PKEY_PATH		= '~/.ssh/stock-mkt-key.pem'
+DB_ENV_PROD 	= int(os.environ.get('DB_ENV_PROD'))

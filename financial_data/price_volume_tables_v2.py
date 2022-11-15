@@ -2,6 +2,7 @@ import sys
 sys.path.insert(0,'/Users/akhil.philip/learn/upwork/stock_market_data')
 
 from settings.settings import *
+from table_ops.table_ops import open_ssh_tunnel
 import re
 from datetime import datetime
 import pandas as pd
@@ -88,15 +89,15 @@ class PriceVolumeTables():
 
 
 
-
-if __name__ == '__main__':
-
+@open_ssh_tunnel
+def main_func():
     # get symbols and exchange data
-    symbols, exchanges = get_symbols_exchanges(api_key, None)
-
+    port = conn_params['port']
+    symbols, exchanges = get_symbols_exchanges(api_key, None, port=port)
+    
     try:
         # define limit based on records stored in db
-        limit = get_value(sql="select max(date) from daily_price_per_ticker")
+        limit = get_value(sql="select max(date) from daily_price_per_ticker", port=port)
         if limit: 
             limit = (datetime.today().date() - limit[0][0]).days + 1
         else: 
@@ -109,11 +110,18 @@ if __name__ == '__main__':
         price_vals, volume_vals = pvt.fetch_data()
         if price_vals:
             # create table if not exists for end_point
-            create_table(price_vals, "daily_price_per_ticker", pk='date')
-            create_table(volume_vals, "daily_volume_per_ticker", pk='date')
+            create_table(price_vals, "daily_price_per_ticker", pk='date', port=port)
+            create_table(volume_vals, "daily_volume_per_ticker", pk='date', port=port)
             # save data to table
-            save(price_vals, "daily_price_per_ticker", pk='date')
-            save(volume_vals, "daily_volume_per_ticker", pk='date')
+            save(price_vals, "daily_price_per_ticker", pk='date', port=port)
+            save(volume_vals, "daily_volume_per_ticker", pk='date', port=port)
             
     except Exception as e:
         logger.error(e)
+
+
+
+
+
+if __name__ == '__main__':
+    main_func()

@@ -2,6 +2,7 @@ import sys
 sys.path.insert(0,'/Users/akhil.philip/learn/upwork/stock_market_data')
 
 from settings.settings import *
+from table_ops.table_ops import open_ssh_tunnel
 import re
 import json
 import hashlib
@@ -81,9 +82,10 @@ def main(*args):
     end_point, period, limit, table_name, url_version = 'income-statement', 'annual', 30, 'annual_income_statement','v3'
     """
     try:
-        end_point, period, limit, table_name, url_version = args[0]
+        end_point, period, limit, table_name, url_version, port = args[0]
+        logger.info('port: %s'%port)
         # get symbols and exchange data
-        symbols, exchanges = get_symbols_exchanges(api_key, table_name)
+        symbols, exchanges = get_symbols_exchanges(api_key, table_name, port=port)
         
         session = create_session()
         logger.info('fetching data from %s for %s companies for period %s'%(end_point, len(symbols), period))
@@ -93,11 +95,20 @@ def main(*args):
             values = gs.fetch_data()
             if values:
                 # create table if not exists for end_point
-                create_table(values, table_name, pk='hash')
+                create_table(values, table_name, pk='hash', port=port)
                 # save data to table
-                save(values, table_name, symbol, pk='hash')
+                save(values, table_name, symbol, pk='hash', port=port)
     except Exception as e:
             logger.error(e)
+
+@open_ssh_tunnel
+def mp_main(args):
+    args = [(*arg, conn_params['port']) for arg in args]
+    # multiprocessing
+    pool = os.cpu_count()
+    with Pool(pool) as p:
+        logger.info("starting pool of %s workers"%pool)
+        p.map(main, args)
 
 
 
@@ -111,10 +122,4 @@ if __name__ == '__main__':
         ('shares_float','annual', 30, 'shares_float','v4'),
         ('stock_peers','annual', 30, 'stock_peers','v4'),
     ]
-    
-    # multiprocessing
-    pool = os.cpu_count()
-    with Pool(pool) as p:
-        logger.info("starting pool of %s workers"%pool)
-        p.map(main, args)
-    
+    mp_main(args)
