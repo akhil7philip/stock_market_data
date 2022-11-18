@@ -3,6 +3,7 @@ sys.path.insert(0,'/Users/akhil.philip/learn/upwork/stock_market_data')
 
 from settings.settings import *
 from table_ops.ssh_client import open_ssh_tunnel
+from table_ops.table_ops import set_value
 import pandas as pd
 import psycopg2
 from datetime import datetime
@@ -61,6 +62,29 @@ def save_v2(values, table_name, port=5432):
         df.to_sql(table_name, conn, if_exists='replace', index=False)
         conn.close()
         logger.info("saved %s new values for %s"%(len(df), table_name))
+
+    except Exception as e:
+        logger.error(e)
+
+
+
+# save one column at a time 
+def save_v3(values, table_name, port=5432):
+    try:
+        conn_params['port'] = port
+        engine = create_engine("postgresql://{user}:{password}@{host}:{port}/{database}".format(**conn_params))
+        conn = engine.connect()
+        logger.info("saving %s new values for %s"%(len(values), table_name))
+        s = ''
+        for v in values:
+            k, = (set(v.keys()) - {'date'})
+            s += '''
+                update %s 
+                set "%s" = '%s' 
+                where date = '%s'; 
+                '''%(table_name, k, v[k], v['date'])
+        set_value(s, port)
+        conn.close()
 
     except Exception as e:
         logger.error(e)

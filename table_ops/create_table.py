@@ -2,7 +2,9 @@ import sys
 sys.path.insert(0,'/Users/akhil.philip/learn/upwork/stock_market_data')
 
 from settings.settings import *
+from datetime import datetime, timedelta
 from table_ops.ssh_client import open_ssh_tunnel
+from table_ops.table_ops import set_value
 from numpy import dtype
 import psycopg2
 import pandas as pd
@@ -41,6 +43,35 @@ def create_table(values, table_name, pk='tsid', port=5432):
         s+='created_at TIMESTAMP WITH TIME ZONE, PRIMARY KEY(%s))'%pk
         # s+='created_at TIMESTAMP WITHOUT TIME ZONE, PRIMARY KEY(%s))'%pk
         cur.execute(s)
+        conn.commit()
+        conn.close()
+
+    except Exception as e:
+        logger.error(e)
+
+# create price and volumes table
+def create_table_v2(symbols, table_name, limit=1000, pk='date', port=5432):
+    try:
+        # print('port: %s'%port)
+        conn_params['port'] = port
+        conn = psycopg2.connect(**conn_params)
+        cur = conn.cursor()
+        s = 'CREATE TABLE IF NOT EXISTS %s ( "date" DATE, '%table_name
+        for symbol in symbols:
+            s+=f'"{symbol}" NUMERIC, '
+        s+='PRIMARY KEY(%s));'%pk
+        cur.execute(s)
+        conn.commit()
+        days = [(datetime.now() - timedelta(days=i)).strftime('%Y-%m-%d') for i in range(limit)]
+        s = ''
+        for day in days:
+            s += '''
+            insert into %s ("date")
+            Select '%s' Where not exists (
+                select * from %s where date='%s'
+                ); 
+            '''%(table_name,day,table_name,day)
+        set_value(s, port)
         conn.commit()
         conn.close()
 
