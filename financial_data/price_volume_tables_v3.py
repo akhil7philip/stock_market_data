@@ -60,25 +60,20 @@ class PriceVolumeTables():
 @open_ssh_tunnel
 def main_func():
     try:
-        # get symbols and exchange data
         port = conn_params['port']
-        symbols, limit = get_symbols_exchanges(api_key, None, port=port)
+        # no of columns in each table
+        table_size = 1500
+        symbols, limit, table_list_count, total_count = get_symbols_exchanges(api_key, table_size, port=port)
+        table_count = len(table_list_count)-1
         end_point, period = 'historical-price-full', 'annual'
-        # create table if not exists for end_point
-        l = [0, 1500, 3000, 4500, 6000, 7500, 9000, len(symbols)]
-        for count in range(7):
-            
-            # define limit based on records stored in db
-            # limit = get_value(sql="select max(date) from daily_price_per_ticker_%s"%count, port=port)
-            # if limit: 
-            #     limit = (datetime.today().date() - limit[0][0]).days + 1
-            # else: 
-            #     limit = 10
+        print('table_list_count: %s'%table_list_count)
+        price_table_names = ['daily_price_per_ticker_%s'%str(i+1) for i in range(total_count-table_count,total_count)]
+        volume_table_names = ['daily_price_per_ticker_%s'%str(i+1) for i in range(total_count-table_count,total_count)]
+        for count, (price_table, vol_table) in enumerate(zip(price_table_names, volume_table_names)):
             logger.info('taking limit value as %s'%limit)
-
-            symbols_temp = symbols[l[count]:l[count+1]]
-            create_table_v2(symbols_temp, "daily_price_per_ticker_%s"%str(count+1), limit, pk='date', port=port)
-            create_table_v2(symbols_temp, "daily_volume_per_ticker_%s"%str(count+1), limit, pk='date', port=port)
+            symbols_temp = symbols[table_list_count[count]:table_list_count[count+1]]
+            create_table_v2(symbols_temp, price_table, limit, pk='date', port=port)
+            create_table_v2(symbols_temp, vol_table, limit, pk='date', port=port)
         
             logger.info('fetching data from %s for %s companies for period %s'%(end_point, len(symbols_temp), period))
             for symbol in symbols_temp:
@@ -87,8 +82,8 @@ def main_func():
                 price_vals, volume_vals = pvt.fetch_data()
                 if price_vals:
                     # save data to table
-                    save_v3(price_vals, "daily_price_per_ticker_%s"%str(count+1), port=port)
-                    save_v3(volume_vals, "daily_volume_per_ticker_%s"%str(count+1), port=port)
+                    save_v3(price_vals, price_table, port=port)
+                    save_v3(volume_vals, vol_table, port=port)
     except Exception as e:
             logger.error(e)
 
