@@ -68,7 +68,7 @@ def main_func():
         end_point, period = 'historical-price-full', 'annual'
         print('table_list_count: %s'%table_list_count)
         price_table_names = ['daily_price_per_ticker_%s'%str(i+1) for i in range(total_count-table_count,total_count)]
-        volume_table_names = ['daily_price_per_ticker_%s'%str(i+1) for i in range(total_count-table_count,total_count)]
+        volume_table_names = ['daily_volume_per_ticker_%s'%str(i+1) for i in range(total_count-table_count,total_count)]
         for count, (price_table, vol_table) in enumerate(zip(price_table_names, volume_table_names)):
             logger.info('taking limit value as %s'%limit)
             symbols_temp = symbols[table_list_count[count]:table_list_count[count+1]]
