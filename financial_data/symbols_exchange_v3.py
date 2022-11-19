@@ -2,6 +2,7 @@ import sys
 sys.path.insert(0,'/Users/akhil.philip/learn/upwork/stock_market_data')
 
 from settings.settings import *
+from math import ceil
 import numpy as np
 import pandas as pd
 from helper_funcs.get_api import get_api, create_session
@@ -19,7 +20,7 @@ def get_symbols_exchanges(API_KEY, table_size, port=5432):
     def bucket_table(df, table_size):
         # [0, 1500, 3000, 4500, 6000, 7500, 9000, len(df)]
         total = len(df)
-        table_count = int(total/table_size)+1
+        table_count = ceil(total/table_size)
         table_list_count = [i for i in range(0,total,table_size)]
         table_list_count.append(total)
         return table_list_count, table_count
@@ -49,14 +50,13 @@ def get_symbols_exchanges(API_KEY, table_size, port=5432):
                         values = values[0]
                         limit = 5
                         try:
-                            i = values.index(None)
+                            i = values.index(None)+table_size*count
                             table_list_count = [j-i for j in table_list_count if j > i]
                             table_list_count.insert(0,0)
                             limit = 1000
-                            print("index at: %s"%i)
                             df = df.iloc[
                                 range(
-                                    i+1500*count,
+                                    i,
                                     len(df)
                                     )]
                             break

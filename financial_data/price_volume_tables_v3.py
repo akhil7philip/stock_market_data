@@ -40,11 +40,8 @@ class PriceVolumeTables():
             if data:
                 # Daily Price per Ticker
                 temp_price  = pd.json_normalize(data, record_path='historical', meta=['symbol']).rename(columns={'close':self.symbol})[['date',self.symbol]]
-                # temp_price.rename(columns={col:self.camel_to_snake(col) for col in temp_price.columns}, inplace=True)
                 # Daily Price per Ticker
                 temp_volume = pd.json_normalize(data, record_path='historical', meta=['symbol']).rename(columns={'volume':self.symbol})[['date',self.symbol]]
-                # temp_volume.rename(columns={col:self.camel_to_snake(col) for col in temp_volume.columns}, inplace=True)
-            
             return temp_price.to_dict('records'), temp_volume.to_dict('records')
 
         except Exception as e:
@@ -61,17 +58,20 @@ class PriceVolumeTables():
 def main_func():
     try:
         port = conn_params['port']
-        # no of columns in each table
-        table_size = 1500
+        # no of columns in each table (max: 1500)
+        table_size = 500
+        
         symbols, limit, table_list_count, total_count = get_symbols_exchanges(api_key, table_size, port=port)
         table_count = len(table_list_count)-1
         end_point, period = 'historical-price-full', 'annual'
-        print('table_list_count: %s'%table_list_count)
+
         price_table_names = ['daily_price_per_ticker_%s'%str(i+1) for i in range(total_count-table_count,total_count)]
         volume_table_names = ['daily_volume_per_ticker_%s'%str(i+1) for i in range(total_count-table_count,total_count)]
+        
         for count, (price_table, vol_table) in enumerate(zip(price_table_names, volume_table_names)):
             logger.info('taking limit value as %s'%limit)
             symbols_temp = symbols[table_list_count[count]:table_list_count[count+1]]
+
             create_table_v2(symbols_temp, price_table, limit, pk='date', port=port)
             create_table_v2(symbols_temp, vol_table, limit, pk='date', port=port)
         
