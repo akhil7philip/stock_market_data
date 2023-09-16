@@ -1,18 +1,12 @@
-import sys
-sys.path.insert(0,'/Users/akhil.philip/learn/upwork/stock_market_data')
-
-from settings.settings import *
-from table_ops.table_ops import open_ssh_tunnel
-import re
 import json
 import hashlib
 from multiprocessing import Pool
+import re
 import pandas as pd
-
-from financial_data.symbols_exchange_v2 import get_symbols_exchanges
+from settings import *
+from table_ops import *
+from financial_data.symbols_exchange_v3 import get_symbols_exchanges
 from helper_funcs.get_api import get_api, create_session
-from table_ops.create_table import create_table
-from table_ops.save_data import save
 
 import logging
 logger = logging.getLogger(__name__)
@@ -97,11 +91,11 @@ def main(*args):
                 # create table if not exists for end_point
                 create_table(values, table_name, pk='hash', port=port)
                 # save data to table
-                save(values, table_name, symbol, pk='hash', port=port)
+                save_data.save(values, table_name, symbol, pk='hash', port=port)
     except Exception as e:
             logger.error(e)
 
-@open_ssh_tunnel
+@ssh_client.open_ssh_tunnel
 def mp_main(args):
     args = [(*arg, conn_params['port']) for arg in args]
     # multiprocessing

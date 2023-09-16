@@ -1,8 +1,4 @@
-import sys
-sys.path.insert(0,'/Users/akhil.philip/learn/upwork/stock_market_data')
-
-from settings.settings import *
-from table_ops.ssh_client import open_ssh_tunnel
+from settings import *
 import psycopg2
 
 import logging

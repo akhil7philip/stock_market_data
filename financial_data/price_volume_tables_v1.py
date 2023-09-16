@@ -1,16 +1,10 @@
-import sys
-sys.path.insert(0,'/Users/akhil.philip/learn/upwork/stock_market_data')
-
-from settings.settings import *
 import re
-from datetime import datetime
+import datetime as dt
 import pandas as pd
-
-from financial_data.symbols_exchange_v2 import get_symbols_exchanges
+from settings import *
+from table_ops import *
+from financial_data.symbols_exchange_v3 import get_symbols_exchanges
 from helper_funcs.get_api import get_api, create_session
-from table_ops.table_ops import get_value
-from table_ops.create_table import create_table
-from table_ops.save_data import save
 
 import logging
 logger = logging.getLogger(__name__)
@@ -67,9 +61,9 @@ if __name__ == '__main__':
     symbols, exchanges = get_symbols_exchanges(api_key, None, port=port)
     try:
         # define limit based on records stored in db
-        limit = get_value(sql="select max(date) from daily_price_per_ticker", port=port)
+        limit = table_ops_func.get_value(sql="select max(date) from daily_price_per_ticker", port=port)
         if limit: 
-            limit = (datetime.today().date() - limit[0][0]).days + 1
+            limit = (dt.datetime.today().date() - limit[0][0]).days + 1
         else: 
             limit = 1000
         logger.info('taking limit value as %s'%limit)
@@ -83,8 +77,8 @@ if __name__ == '__main__':
             create_table(price_vals, "daily_price_per_ticker", pk='date', port=port)
             create_table(volume_vals, "daily_volume_per_ticker", pk='date', port=port)
             # save data to table
-            save(price_vals, "daily_price_per_ticker", pk='date', port=port)
-            save(volume_vals, "daily_volume_per_ticker", pk='date', port=port)
+            save_data.save(price_vals, "daily_price_per_ticker", pk='date', port=port)
+            save_data.save(volume_vals, "daily_volume_per_ticker", pk='date', port=port)
             
     except Exception as e:
         logger.error(e)

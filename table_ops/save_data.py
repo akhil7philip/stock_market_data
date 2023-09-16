@@ -1,9 +1,5 @@
-import sys
-sys.path.insert(0,'/Users/akhil.philip/learn/upwork/stock_market_data')
-
-from settings.settings import *
-from table_ops.ssh_client import open_ssh_tunnel
-from table_ops.table_ops import set_value
+from settings import *
+from table_ops import *
 import pandas as pd
 import psycopg2
 from datetime import datetime
@@ -83,7 +79,7 @@ def save_v3(values, table_name, port=5432):
                 set "%s" = '%s' 
                 where date = '%s'; 
                 '''%(table_name, k, v[k], v['date'])
-        set_value(s, port)
+        table_ops_func.set_value(s, port)
         conn.close()
 
     except Exception as e:

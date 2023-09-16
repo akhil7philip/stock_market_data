@@ -1,19 +1,9 @@
-import sys
-sys.path.insert(0,'/Users/akhil.philip/learn/upwork/stock_market_data')
-
-from settings.settings import *
-from table_ops.ssh_client import open_ssh_tunnel
 import re
-from itertools import pairwise
-from datetime import datetime
 import pandas as pd
-from multiprocessing import Pool
-
+from settings import *
+from table_ops import *
 from financial_data.symbols_exchange_v3 import get_symbols_exchanges
 from helper_funcs.get_api import get_api, create_session
-from table_ops.table_ops import get_value
-from table_ops.create_table import create_table_v2
-from table_ops.save_data import save_v3
 
 import logging
 logger = logging.getLogger(__name__)
@@ -54,26 +44,26 @@ class PriceVolumeTables():
 
 
 
-@open_ssh_tunnel
+@ssh_client.open_ssh_tunnel
 def main_func():
     try:
         port = conn_params['port']
         # no of columns in each table (max: 1500)
-        table_size = 500
+        table_size = 750
         
         symbols, limit, table_list_count, total_count = get_symbols_exchanges(api_key, table_size, port=port)
         table_count = len(table_list_count)-1
         end_point, period = 'historical-price-full', 'annual'
 
-        price_table_names = ['daily_price_per_ticker_%s'%str(i+1) for i in range(total_count-table_count,total_count)]
-        volume_table_names = ['daily_volume_per_ticker_%s'%str(i+1) for i in range(total_count-table_count,total_count)]
+        price_table_names = ['bse_nse_daily_price_per_ticker_%s'%str(i+1) for i in range(total_count-table_count,total_count)]
+        volume_table_names = ['bse_nse_daily_volume_per_ticker_%s'%str(i+1) for i in range(total_count-table_count,total_count)]
         
         for count, (price_table, vol_table) in enumerate(zip(price_table_names, volume_table_names)):
             logger.info('taking limit value as %s'%limit)
             symbols_temp = symbols[table_list_count[count]:table_list_count[count+1]]
 
-            create_table_v2(symbols_temp, price_table, limit, pk='date', port=port)
-            create_table_v2(symbols_temp, vol_table, limit, pk='date', port=port)
+            create_table.create_table_v2(symbols_temp, price_table, limit, pk='date', port=port)
+            create_table.create_table_v2(symbols_temp, vol_table, limit, pk='date', port=port)
         
             logger.info('fetching data from %s for %s companies for period %s'%(end_point, len(symbols_temp), period))
             for symbol in symbols_temp:
@@ -82,8 +72,8 @@ def main_func():
                 price_vals, volume_vals = pvt.fetch_data()
                 if price_vals:
                     # save data to table
-                    save_v3(price_vals, price_table, port=port)
-                    save_v3(volume_vals, vol_table, port=port)
+                    save_data.save_v3(price_vals, price_table, port=port)
+                    save_data.save_v3(volume_vals, vol_table, port=port)
     except Exception as e:
             logger.error(e)
 

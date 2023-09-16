@@ -1,14 +1,13 @@
-import sys
-sys.path.insert(0,'/Users/akhil.philip/learn/upwork/stock_market_data')
-
-from settings.settings import *
 from math import ceil
-import numpy as np
 import pandas as pd
+from settings import *
+from table_ops import table_ops_func
 from helper_funcs.get_api import get_api, create_session
-from table_ops.table_ops import get_value
+from table_ops.table_ops_func import get_value
+
 import logging
 logger = logging.getLogger(__name__)
+
 
 # for price and volumes table
 def get_symbols_exchanges(API_KEY, table_size, port=5432):
@@ -33,7 +32,8 @@ def get_symbols_exchanges(API_KEY, table_size, port=5432):
         if data:
             df = pd.DataFrame(data)
             # get only symbols from 'NASDAQ','NYSE' exchanges
-            df = df.set_index('exchangeShortName').loc[['NASDAQ','NYSE'],'symbol'].reset_index()
+            # df = df.set_index('exchangeShortName').loc[['NASDAQ','NYSE'],'symbol'].reset_index()
+            df = df.set_index('exchangeShortName').loc[['NSE','BSE'],'symbol'].reset_index()
 
             # create list based on table size
             table_list_count, table_count = bucket_table(df, table_size)
@@ -45,7 +45,7 @@ def get_symbols_exchanges(API_KEY, table_size, port=5432):
                     for symbol in df['symbol'].values[table_list_count[count]:table_list_count[count+1]]:
                         s += 'max("%s"), '%(symbol)
                     s += 'max(date) from %s t'%table_name
-                    values = get_value(s, port=port)
+                    values = table_ops_func.get_value(s, port=port)
                     if values: 
                         values = values[0]
                         limit = 5

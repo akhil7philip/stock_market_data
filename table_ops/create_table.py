@@ -1,13 +1,11 @@
-import sys
-sys.path.insert(0,'/Users/akhil.philip/learn/upwork/stock_market_data')
-
-from settings.settings import *
 from datetime import datetime, timedelta
-from table_ops.ssh_client import open_ssh_tunnel
-from table_ops.table_ops import set_value
 from numpy import dtype
 import psycopg2
 import pandas as pd
+
+from settings import *
+from table_ops.table_ops_func import set_value
+
 import logging
 logger = logging.getLogger(__name__)
 

@@ -1,13 +1,8 @@
-import sys
-sys.path.insert(0,'/Users/akhil.philip/learn/upwork/stock_market_data')
-
-from settings.settings import *
-from table_ops.table_ops import open_ssh_tunnel
 import re
+import datetime as dt
 import pandas as pd
-
-from table_ops.create_table import create_table
-from table_ops.save_data import save_v2
+from settings import *
+from table_ops import *
 from helper_funcs.get_api import get_api, create_session
 
 import logging
@@ -42,7 +37,7 @@ class GeneralScriptTwo():
 
 
 
-@open_ssh_tunnel
+@ssh_client.open_ssh_tunnel
 def main(args):
     port = conn_params['port']
     for arg in args:
@@ -57,7 +52,7 @@ def main(args):
                 # create table if not exists for end_point
                 create_table(values, table_name, pk=pk, port=port)
                 # save data to table
-                save_v2(values, table_name, port=port)
+                save_data.save_v2(values, table_name, port=port)
             
         except Exception as e:
             logger.error(e)

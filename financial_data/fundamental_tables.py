@@ -1,21 +1,13 @@
-import sys
-sys.path.insert(0,'/Users/akhil.philip/learn/upwork/stock_market_data')
-
-from settings.settings import *
-from table_ops.table_ops import open_ssh_tunnel
 import re
 import pandas as pd
 from multiprocessing import Pool
-
-from financial_data.symbols_exchange_v2 import get_symbols_exchanges
+from settings import *
+from table_ops import *
+from financial_data.symbols_exchange_v3 import get_symbols_exchanges
 from helper_funcs.get_api import get_api, create_session
-from table_ops.table_ops import get_value, set_value
-from table_ops.create_table import create_table
-from table_ops.save_data import save
 
 import logging
 logger = logging.getLogger(__name__)
-
 
 
 class FundamentalTables():
@@ -83,7 +75,7 @@ def main(*args):
         symbols, exchanges = get_symbols_exchanges(api_key, table_name, port=port)
         
         # alter table to add new columns
-        set_value("""
+        table_ops_func.set_value("""
             alter table if exists %s 
             add column if not exists country varchar(30), 
             add column if not exists currency varchar(10)
@@ -92,15 +84,15 @@ def main(*args):
         logger.info('fetching data from %s for %s companies for period %s'%(end_point, len(symbols), period))
         for symbol, exchange in zip(symbols, exchanges):
             # add currency column
-            currency = get_value(sql=" select currency from company_profile where symbol = '%s' "%symbol, port=port)
+            currency = table_ops_func.get_value(sql=" select currency from company_profile where symbol = '%s' "%symbol, port=port)
             if currency: currency = currency[0][0]
             else: currency = None
             # add currency column
-            country = get_value(sql=" select country from company_profile where symbol = '%s' "%symbol, port=port)
+            country = table_ops_func.get_value(sql=" select country from company_profile where symbol = '%s' "%symbol, port=port)
             if country: country = country[0][0]
             else: country = None
             # update table to backfill values
-            set_value("""
+            table_ops_func.set_value("""
                 update %s 
                 set country = '%s', currency = '%s' 
                 where symbol = '%s'
@@ -113,13 +105,13 @@ def main(*args):
                 # create table if not exists for end_point
                 create_table(values, table_name, port=port)
                 # save data to table
-                save(values, table_name, symbol, port=port)
+                save_data.save(values, table_name, symbol, port=port)
                 
         
     except Exception as e:
         logger.error(e)
 
-@open_ssh_tunnel
+@ssh_client.open_ssh_tunnel
 def mp_main(args):
     args = [(*arg, conn_params['port']) for arg in args]
     # multiprocessing

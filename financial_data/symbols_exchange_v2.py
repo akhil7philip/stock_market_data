@@ -1,10 +1,7 @@
-import sys
-sys.path.insert(0,'/Users/akhil.philip/learn/upwork/stock_market_data')
-
-from settings.settings import *
+from settings import *
+from table_ops import table_ops_func
 import pandas as pd
 from helper_funcs.get_api import get_api, create_session
-from table_ops.table_ops import get_value
 import logging
 logger = logging.getLogger(__name__)
 
@@ -29,7 +26,7 @@ def get_symbols_exchanges(API_KEY, table_name, port=5432):
                     # order symbols based on values from existing table;
                     # i.e create a list of symbols that don't exist in database first, 
                     # and then append the remaining symbols to that list
-                    values = get_value('SELECT distinct %s from %s'%('symbol',table_name), port=port)
+                    values = table_ops_func.get_value('SELECT distinct %s from %s'%('symbol',table_name), port=port)
                     model_symbol_set = set([val[0] for val in values])
                     sheet_symbol_set = set(df['symbol'])
                     symbol_to_save = list(sheet_symbol_set - model_symbol_set)

@@ -1,7 +1,4 @@
-import sys
-sys.path.insert(0,'/Users/akhil.philip/learn/upwork/stock_market_data')
-
-from settings.settings import *
+from settings import *
 from functools import wraps
 import psycopg2
 from sshtunnel import SSHTunnelForwarder

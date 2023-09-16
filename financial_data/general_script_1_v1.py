@@ -1,16 +1,11 @@
-import sys
-sys.path.insert(0,'/Users/akhil.philip/learn/upwork/stock_market_data')
-
-from settings.settings import *
 import re
 import json
 import hashlib
 import pandas as pd
-
-from financial_data.symbols_exchange_v2 import get_symbols_exchanges
+from settings import *
+from table_ops import *
+from financial_data.symbols_exchange_v3 import get_symbols_exchanges
 from helper_funcs.get_api import get_api, create_session
-from table_ops.create_table import create_table
-from table_ops.save_data import save
 
 import logging
 logger = logging.getLogger(__name__)
@@ -102,7 +97,7 @@ if __name__ == '__main__':
                     # create table if not exists for end_point
                     create_table(values, table_name, pk='hash')
                     # save data to table
-                    save(values, table_name, symbol, pk='hash')
+                    save_data.save(values, table_name, symbol, pk='hash')
             
         except Exception as e:
             logger.error(e)

@@ -1,7 +1,4 @@
-import sys
-sys.path.insert(0,'/Users/akhil.philip/learn/upwork/stock_market_data')
-
-from settings.settings import *
+from settings import *
 import pandas as pd
 from helper_funcs.get_api import get_api, create_session
 

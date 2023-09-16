@@ -21,12 +21,6 @@ python price_volume_tables_v2.py
 ```
 
 #
-## import statement for financial data dir
-```
-sys.path.insert(0,'/home/ubuntu/stock_market_data')
-```
-
-#
 ## approx time taken for each script, in desc order 
 * fundamental_tables ~  60 mins each; 18 hours total
 * price_volume_tables ~ 60 mins
